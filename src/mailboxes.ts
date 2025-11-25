@@ -18,8 +18,11 @@ export function useDebounce<T>(value: T, delay: number): T {
 
 type MailboxProviderName =
   | "Apple"
+  | "AOL"
   | "Fastmail"
+  | "GMX"
   | "Google"
+  | "Mail.com"
   | "Microsoft"
   | "Proton Mail"
   | "Rackspace"
@@ -48,6 +51,14 @@ const AppleMailboxProvider: MailboxProvider = {
   mxDomains: ["icloud.com."],
 };
 
+const AOLMailboxProvider: MailboxProvider = {
+  name: "AOL",
+  addressingRules: {
+    plusAddressing: true,
+  },
+  mxDomains: ["mx.aol.com.", "mailin.aol.com."],
+};
+
 const FastmailMailboxProvider: MailboxProvider = {
   name: "Fastmail",
   addressingRules: {
@@ -63,6 +74,22 @@ const GoogleMailboxProvider: MailboxProvider = {
     stripDots: true,
   },
   mxDomains: ["google.com.", "googlemail.com."],
+};
+
+const GMXMailboxProvider: MailboxProvider = {
+  name: "GMX",
+  addressingRules: {
+    plusAddressing: true,
+  },
+  mxDomains: ["gmx.com.", "gmx.net."],
+};
+
+const MailComMailboxProvider: MailboxProvider = {
+  name: "Mail.com",
+  addressingRules: {
+    plusAddressing: true,
+  },
+  mxDomains: ["mail.com."],
 };
 
 const MicrosoftMailboxProvider: MailboxProvider = {
@@ -114,9 +141,12 @@ const ZohoMailboxProvider: MailboxProvider = {
 };
 
 const MailboxProviders: MailboxProvider[] = [
+  AOLMailboxProvider,
   AppleMailboxProvider,
   FastmailMailboxProvider,
+  GMXMailboxProvider,
   GoogleMailboxProvider,
+  MailComMailboxProvider,
   MicrosoftMailboxProvider,
   ProtonMailMailboxProvider,
   RackspaceMailboxProvider,
