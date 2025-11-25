@@ -42,12 +42,12 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-      #- name: Deploy
-      #  uses: easingthemes/ssh-deploy@v5.1.1
-      #  with:
-      #    SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
-      #    REMOTE_HOST: ${{ secrets.SSH_HOST }}
-      #    REMOTE_USER: ${{ secrets.SSH_USER }}
-      #    TARGET: ${{ secrets.REMOTE_DIR }}
-      #    SOURCE: "dist/"
-      #    ARGS: "--delete"
+      - name: Deploy
+        uses: easingthemes/ssh-deploy@v5.1.1
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.SSH_HOST }}
+          REMOTE_USER: ${{ secrets.SSH_USER }}
+          TARGET: ${{ secrets.REMOTE_DIR }}
+          SOURCE: "dist/"
+          ARGS: "--delete"
