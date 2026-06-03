@@ -34,7 +34,6 @@ type AddressingRules = {
   dashAddressing?: true;
   plusAddressing?: true;
   stripDots?: true;
-  localPartAsHostName?: true;
 };
 
 export type MailboxProvider = {

@@ -34,15 +34,6 @@ const applyAddressingRules = (
 ): string => {
   const rules = provider.addressingRules;
 
-  // apply this rule before others
-  if (rules.localPartAsHostName) {
-    const domainParts = getDomainParts(domain);
-    if (domainParts.subdomain) {
-      localPart = domainParts.subdomain;
-      domain = domainParts.rootDomain;
-    }
-  }
-
   let canonical = localPart.toLowerCase();
 
   if (rules.plusAddressing) {
@@ -60,21 +51,4 @@ const applyAddressingRules = (
   const canonicalDomain = domain.toLowerCase();
 
   return `${canonical}@${canonicalDomain}`;
-};
-
-type DomainParts = {
-  subdomain: string | null;
-  rootDomain: string;
-};
-
-const getDomainParts = (domain: string): DomainParts => {
-  const parts = domain.split(".");
-  if (parts.length <= 2) {
-    return { subdomain: null, rootDomain: domain };
-  }
-
-  const subdomain = parts[0];
-  const rootDomain = parts.slice(1).join(".");
-
-  return { subdomain, rootDomain };
 };
