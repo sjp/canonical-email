@@ -63,11 +63,12 @@ const useSystemDarkModePreference = (): Theme => {
 export const useTheme = () => {
   const systemTheme = useSystemDarkModePreference();
 
-  const [theme, setTheme] = useState(systemTheme);
+  // Once the user explicitly picks a theme it takes precedence; until then we
+  // follow the system preference (including live OS changes). The choice is
+  // intentionally not persisted, so it resets to the system preference on reload.
+  const [override, setOverride] = useState<Theme | null>(null);
 
-  useEffect(() => {
-    setTheme(systemTheme);
-  }, [systemTheme]);
+  const theme = override ?? systemTheme;
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -78,6 +79,6 @@ export const useTheme = () => {
   return {
     theme,
     systemTheme,
-    setTheme,
+    setTheme: setOverride,
   };
 };
