@@ -23,8 +23,13 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm ci
-      - run: npm run build
+      - name: Install Vite+
+        run: |
+          curl -fsSL https://vite.plus | bash
+          echo "$HOME/.vite-plus/bin" >> "$GITHUB_PATH"
+      - run: vp install --frozen-lockfile
+      - run: vp check
+      - run: vp run build
 
   deploy:
     if: github.ref == 'refs/heads/master'
@@ -39,8 +44,13 @@ jobs:
         with:
           node-version: latest
 
-      - run: npm ci
-      - run: npm run build
+      - name: Install Vite+
+        run: |
+          curl -fsSL https://vite.plus | bash
+          echo "$HOME/.vite-plus/bin" >> "$GITHUB_PATH"
+
+      - run: vp install --frozen-lockfile
+      - run: vp run build
 
       - name: Deploy
         uses: easingthemes/ssh-deploy@v5.1.1
