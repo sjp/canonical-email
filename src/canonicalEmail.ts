@@ -1,10 +1,7 @@
 import { getMailboxProviderByDomain, type MailboxProvider } from "./mailboxes";
 
 // Canonicalizes an email address based on the mail provider's addressing rules
-export const getCanonicalEmail = (
-  email: string,
-  mailServers: string[]
-): string => {
+export const getCanonicalEmail = (email: string, mailServers: string[]): string => {
   if (!email || !email.includes("@")) {
     return email;
   }
@@ -33,7 +30,7 @@ const detectProviderFromMX = (mxDomains: string[]): MailboxProvider | null => {
 const applyAddressingRules = (
   localPart: string,
   domain: string,
-  provider: MailboxProvider
+  provider: MailboxProvider,
 ): string => {
   const rules = provider.addressingRules;
 

@@ -12,4 +12,3 @@ if (typeof window !== "undefined") {
 export const prerender = async (_data: unknown) => {
   return await ssr(<Main />);
 };
-

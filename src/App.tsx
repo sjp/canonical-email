@@ -17,9 +17,7 @@ export const App = () => {
   const { theme, setTheme } = useTheme();
 
   const debouncedEmail = useDebounce(email, DEBOUNCE_DELAY_MS);
-  const domain = debouncedEmail.includes("@")
-    ? extractDomain(debouncedEmail)
-    : "";
+  const domain = debouncedEmail.includes("@") ? extractDomain(debouncedEmail) : "";
 
   const { mxRecords, loading, error } = useMXRecords(domain);
 
@@ -29,9 +27,7 @@ export const App = () => {
   }, [theme]);
 
   const canonicalEmail =
-    mxRecords && mxRecords.length > 0
-      ? getCanonicalEmail(email, mxRecords)
-      : "";
+    mxRecords && mxRecords.length > 0 ? getCanonicalEmail(email, mxRecords) : "";
 
   const onEmailChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
@@ -75,9 +71,7 @@ export const App = () => {
           />
         </label>
 
-        {loading && (
-          <p aria-busy="true">Querying for your mail provider&hellip;</p>
-        )}
+        {loading && <p aria-busy="true">Querying for your mail provider&hellip;</p>}
 
         {error && <p style={{ color: "var(--pico-color-red-500)" }}>{error}</p>}
 

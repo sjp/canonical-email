@@ -155,14 +155,12 @@ const MailboxProviders: MailboxProvider[] = [
   ZohoMailboxProvider,
 ];
 
-export const getMailboxProviderByDomain = (
-  domain: string
-): MailboxProvider | null => {
+export const getMailboxProviderByDomain = (domain: string): MailboxProvider | null => {
   const loweredDomain = domain.toLowerCase();
   const mailboxProvider = MailboxProviders.find(
     (provider) =>
       provider.mxDomains.includes(loweredDomain) ||
-      provider.mxDomains.some((mxd) => loweredDomain.endsWith("." + mxd))
+      provider.mxDomains.some((mxd) => loweredDomain.endsWith("." + mxd)),
   );
   return mailboxProvider || null;
 };

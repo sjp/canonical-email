@@ -59,9 +59,7 @@ export const useMXRecords = (domain: string): MXRecordData => {
 
       try {
         const response = await fetch(
-          `https://dns.google/resolve?name=${encodeURIComponent(
-            domain
-          )}&type=MX`
+          `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`,
         );
 
         if (!response.ok) {
@@ -80,15 +78,12 @@ export const useMXRecords = (domain: string): MXRecordData => {
           setMxRecords([]);
           cache.set(domain, { mxRecords: [], error: errorMsg });
         } else {
-          const mailServers = data.Answer.map(
-            (record) => record.data.split(" ")[1]
-          );
+          const mailServers = data.Answer.map((record) => record.data.split(" ")[1]);
           setMxRecords(mailServers);
           cache.set(domain, { mxRecords: mailServers, error: "" });
         }
       } catch (err) {
-        const errorMsg =
-          err instanceof Error ? err.message : "An error occurred";
+        const errorMsg = err instanceof Error ? err.message : "An error occurred";
         setError(errorMsg);
         setMxRecords([]);
         cache.set(domain, { mxRecords: [], error: errorMsg });
@@ -97,7 +92,7 @@ export const useMXRecords = (domain: string): MXRecordData => {
       }
     };
 
-    fetchMXRecords();
+    void fetchMXRecords();
   }, [domain]);
 
   return { mxRecords, loading, error };
