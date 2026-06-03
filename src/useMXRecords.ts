@@ -90,8 +90,11 @@ export const useMXRecords = (domain: string): MXRecordData => {
           setMxRecords(mailServers);
         }
       } catch (err) {
+        // Transient failures (offline, timeout, 5xx, SERVFAIL, parse errors) are
+        // deliberately NOT cached, so the domain can be retried once conditions
+        // recover. Only definitive outcomes (records found / no records) above
+        // are cached.
         const errorMsg = err instanceof Error ? err.message : "An error occurred";
-        cache.set(domain, { mxRecords: [], error: errorMsg });
         if (ignore) return;
         setError(errorMsg);
         setMxRecords([]);
