@@ -8,7 +8,7 @@ import { useTheme } from "./useTheme";
 const DEBOUNCE_DELAY_MS = 300;
 
 const extractDomain = (emailAddress: string): string => {
-  const match = emailAddress.match(/@(.+)$/);
+  const match = emailAddress.trim().match(/@(.+)$/);
   return match ? match[1] : "";
 };
 
@@ -27,7 +27,7 @@ export const App = () => {
   }, [theme]);
 
   const canonicalEmail =
-    mxRecords && mxRecords.length > 0 ? getCanonicalEmail(email, mxRecords) : "";
+    mxRecords && mxRecords.length > 0 ? getCanonicalEmail(email.trim(), mxRecords) : "";
 
   const onEmailChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
