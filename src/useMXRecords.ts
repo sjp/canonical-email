@@ -43,6 +43,11 @@ export const useMXRecords = (domain: string): MXRecordData => {
       return;
     }
 
+    // Guards against stale responses: if `domain` changes while a request is
+    // in flight, the cleanup sets this so the resolved request won't apply its
+    // (now outdated) result to state.
+    let ignore = false;
+
     // Check cache first
     const cachedEntry = cache.get(domain);
     if (cachedEntry) {
@@ -74,25 +79,32 @@ export const useMXRecords = (domain: string): MXRecordData => {
 
         if (!data.Answer || data.Answer.length === 0) {
           const errorMsg = "No mailserver records found for this domain";
+          cache.set(domain, { mxRecords: [], error: errorMsg });
+          if (ignore) return;
           setError(errorMsg);
           setMxRecords([]);
-          cache.set(domain, { mxRecords: [], error: errorMsg });
         } else {
           const mailServers = data.Answer.map((record) => record.data.split(" ")[1]);
-          setMxRecords(mailServers);
           cache.set(domain, { mxRecords: mailServers, error: "" });
+          if (ignore) return;
+          setMxRecords(mailServers);
         }
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : "An error occurred";
+        cache.set(domain, { mxRecords: [], error: errorMsg });
+        if (ignore) return;
         setError(errorMsg);
         setMxRecords([]);
-        cache.set(domain, { mxRecords: [], error: errorMsg });
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
 
     void fetchMXRecords();
+
+    return () => {
+      ignore = true;
+    };
   }, [domain]);
 
   return { mxRecords, loading, error };
