@@ -23,4 +23,7 @@ export default defineConfig({
     }),
   ],
   css: { preprocessorOptions: { scss: { quietDeps: true } } },
+  test: {
+    include: ["src/**/*.test.ts"],
+  },
 });
