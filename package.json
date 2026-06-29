@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@picocss/pico": "^2.1.1",
-    "preact": "^10.29.2",
+    "preact": "^10.29.3",
     "preact-iso": "^2.12.0"
   },
   "devDependencies": {
