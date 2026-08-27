@@ -25,6 +25,10 @@ describe("getMailboxProviderByDomain", () => {
     expect(getMailboxProviderByDomain("notgoogle.com.")).toBeNull();
   });
 
+  it("routes AOL (now on Yahoo infrastructure) to Yahoo", () => {
+    expect(getMailboxProviderByDomain("mx-aol.mail.gm0.yahoodns.net.")?.name).toBe("Yahoo");
+  });
+
   it("matches providers with multiple front-door MX domains", () => {
     expect(getMailboxProviderByDomain("alt1.gmail-smtp-in.l.googlemail.com.")?.name).toBe("Google");
   });

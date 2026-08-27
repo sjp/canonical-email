@@ -1,6 +1,5 @@
 type MailboxProviderName =
   | "Apple"
-  | "AOL"
   | "Fastmail"
   | "GMX"
   | "Google"
@@ -15,7 +14,8 @@ type MailboxProviderName =
 type AddressingRules = {
   dashAddressing?: true;
   plusAddressing?: true;
-  stripDots?: true;
+  // Recipient domains (lowercase) for which dots in the local part are ignored.
+  stripDots?: string[];
 };
 
 export type MailboxProvider = {
@@ -32,14 +32,6 @@ const AppleMailboxProvider: MailboxProvider = {
   mxDomains: ["icloud.com."],
 };
 
-const AOLMailboxProvider: MailboxProvider = {
-  name: "AOL",
-  addressingRules: {
-    plusAddressing: true,
-  },
-  mxDomains: ["mx.aol.com.", "mailin.aol.com."],
-};
-
 const FastmailMailboxProvider: MailboxProvider = {
   name: "Fastmail",
   addressingRules: {
@@ -52,7 +44,7 @@ const GoogleMailboxProvider: MailboxProvider = {
   name: "Google",
   addressingRules: {
     plusAddressing: true,
-    stripDots: true,
+    stripDots: ["gmail.com", "googlemail.com"],
   },
   mxDomains: ["google.com.", "googlemail.com."],
 };
@@ -121,8 +113,9 @@ const ZohoMailboxProvider: MailboxProvider = {
   mxDomains: ["zoho.com."],
 };
 
+// Note: aol.com (and verizon.net etc.) MX records now point at *.yahoodns.net,
+// so those domains are handled by the Yahoo entry.
 const MailboxProviders: MailboxProvider[] = [
-  AOLMailboxProvider,
   AppleMailboxProvider,
   FastmailMailboxProvider,
   GMXMailboxProvider,

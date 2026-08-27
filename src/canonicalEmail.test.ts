@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { getCanonicalEmail } from "./canonicalEmail";
+import { getCanonicalEmail, splitEmail } from "./canonicalEmail";
 
 // MX host lists that resolve to a given provider (see getMailboxProviderByDomain).
 const GOOGLE_MX = ["aspmx.l.google.com."];
@@ -63,7 +63,37 @@ describe("getCanonicalEmail", () => {
     });
   });
 
+  describe("Google Workspace (custom domain on Google MX)", () => {
+    it("strips the plus tag but keeps dots, since only gmail.com ignores dots", () => {
+      expect(getCanonicalEmail("John.Doe+tag@Example.org", GOOGLE_MX)).toBe("john.doe@example.org");
+    });
+
+    it("still strips dots for googlemail.com", () => {
+      expect(getCanonicalEmail("john.doe@googlemail.com", GOOGLE_MX)).toBe(
+        "johndoe@googlemail.com",
+      );
+    });
+  });
+
+  it("splits at the last @ so the real domain is used", () => {
+    expect(getCanonicalEmail("a@b+tag@gmail.com", GOOGLE_MX)).toBe("a@b@gmail.com");
+  });
+
   it("preserves an address that is already canonical", () => {
     expect(getCanonicalEmail("johndoe@gmail.com", GOOGLE_MX)).toBe("johndoe@gmail.com");
+  });
+});
+
+describe("splitEmail", () => {
+  it("returns null without an @", () => {
+    expect(splitEmail("nope")).toBeNull();
+  });
+
+  it("splits at the last @", () => {
+    expect(splitEmail("a@b@c.com")).toEqual({ localPart: "a@b", domain: "c.com" });
+  });
+
+  it("allows an empty domain", () => {
+    expect(splitEmail("user@")).toEqual({ localPart: "user", domain: "" });
   });
 });
