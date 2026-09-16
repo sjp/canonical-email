@@ -9,11 +9,6 @@
       "version": "2.0.0",
       "resolved": "ghcr.io/devcontainers/features/node@sha256:fedd4c11f7adfb64283b578dddc7da906728daa25fa293351c9d913231acf12f",
       "integrity": "sha256:fedd4c11f7adfb64283b578dddc7da906728daa25fa293351c9d913231acf12f"
-    },
-    "ghcr.io/helpers4/devcontainer/vite-plus:1": {
-      "version": "1.0.4",
-      "resolved": "ghcr.io/helpers4/devcontainer/vite-plus@sha256:2ae2d1299093fa95be3100a2fe5f562c2ba7b37c52aac2f004673508baac7caf",
-      "integrity": "sha256:2ae2d1299093fa95be3100a2fe5f562c2ba7b37c52aac2f004673508baac7caf"
     }
   }
 }

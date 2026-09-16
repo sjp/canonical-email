@@ -19,15 +19,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Vite+
-        uses: voidzero-dev/setup-vp@v1
+      - name: Set up Node
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
-          cache: true
-      - run: vp install --frozen-lockfile
-      - run: vp check
-      - run: vp test run
-      - run: vp run build
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
 
   deploy:
     if: github.ref == 'refs/heads/master'
@@ -37,13 +37,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Enable Vite+
-        uses: voidzero-dev/setup-vp@v1
+      - name: Set up Node
+        uses: actions/setup-node@v7
         with:
           node-version: latest
+          cache: npm
 
-      - run: vp install --frozen-lockfile
-      - run: vp run build
+      - run: npm ci
+      - run: npm run build
 
       - name: Deploy
         uses: easingthemes/ssh-deploy@v6.0.3

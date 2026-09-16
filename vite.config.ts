@@ -1,19 +1,9 @@
-import { defineConfig } from "vite-plus";
+/// <reference types="vitest/config" />
+import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
 
-// https://vitejs.dev/config/
+// https://vite.dev/config/
 export default defineConfig({
-  fmt: {},
-  lint: {
-    jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
-    rules: {
-      "vite-plus/prefer-vite-plus-imports": "error",
-    },
-    options: {
-      typeAware: true,
-      typeCheck: true,
-    },
-  },
   plugins: [
     preact({
       prerender: {

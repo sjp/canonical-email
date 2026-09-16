@@ -1,3 +1,3 @@
-/// <reference types="vite-plus/client" />
+/// <reference types="vite/client" />
 
 declare module "@picocss/pico";

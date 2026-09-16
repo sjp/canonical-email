@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vite-plus/test";
+import { describe, it, expect } from "vitest";
 import { getCanonicalEmail, splitEmail } from "./canonicalEmail";
 
 // MX host lists that resolve to a given provider (see getMailboxProviderByDomain).
