@@ -32,4 +32,22 @@ describe("getMailboxProviderByDomain", () => {
   it("matches providers with multiple front-door MX domains", () => {
     expect(getMailboxProviderByDomain("alt1.gmail-smtp-in.l.googlemail.com.")?.name).toBe("Google");
   });
+
+  it.each([
+    ["mx01.mail.icloud.com.", "Apple"],
+    ["in1-smtp.messagingengine.com.", "Fastmail"],
+    ["mx00.gmx.net.", "GMX"],
+    ["mx01.gmx.com.", "GMX"],
+    ["aspmx.l.google.com.", "Google"],
+    ["mx00.mail.com.", "Mail.com"],
+    ["example-com.mail.protection.outlook.com.", "Microsoft"],
+    ["mail.protonmail.ch.", "Proton Mail"],
+    ["mx1.emailsrvr.com.", "Rackspace"],
+    ["mta6.am0.yahoodns.net.", "Yahoo"],
+    ["mx.yandex.net.", "Yandex"],
+    ["mx.yandex.ru.", "Yandex"],
+    ["mx.zoho.com.", "Zoho"],
+  ])("recognises %s as %s", (host, name) => {
+    expect(getMailboxProviderByDomain(host)?.name).toBe(name);
+  });
 });

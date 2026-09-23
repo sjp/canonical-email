@@ -14,6 +14,10 @@ export default defineConfig({
   ],
   css: { preprocessorOptions: { scss: { quietDeps: true } } },
   test: {
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.{ts,tsx}"],
+    coverage: {
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/**/*.test.{ts,tsx}", "src/vite-env.d.ts"],
+    },
   },
 });
