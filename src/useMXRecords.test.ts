@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/preact";
+import { act, renderHook } from "@testing-library/preact";
 import { useMXRecords } from "./useMXRecords";
 
 const MX = 15;
@@ -15,14 +15,30 @@ const mxAnswer = (data: string, type = MX) => ({ name: "x.", type, TTL: 300, dat
 let counter = 0;
 const uniqueDomain = () => `test-${++counter}.example`;
 
+// Settles pending promises (fetch, response.json()) and the resulting renders.
+const flush = () =>
+  act(async () => {
+    await vi.advanceTimersByTimeAsync(0);
+  });
+
 let fetchMock: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
+  vi.useFakeTimers();
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
+  // AbortSignal.timeout runs on a native timer that fake timers can't control,
+  // so rebuild it on top of the (faked) setTimeout.
+  vi.spyOn(AbortSignal, "timeout").mockImplementation((ms) => {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(new DOMException("signal timed out", "TimeoutError")), ms);
+    return controller.signal;
+  });
 });
 
 afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
@@ -36,7 +52,8 @@ describe("useMXRecords", () => {
   it("queries Google DNS with the encoded domain", async () => {
     fetchMock.mockResolvedValue(dnsResponse({ Status: 0, Answer: [] }));
     renderHook(() => useMXRecords("exämple.com"));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    await flush();
+    expect(fetchMock).toHaveBeenCalled();
     expect(fetchMock.mock.calls[0][0]).toBe(
       "https://dns.google/resolve?name=ex%C3%A4mple.com&type=MX",
     );
@@ -57,7 +74,8 @@ describe("useMXRecords", () => {
     const { result } = renderHook(() => useMXRecords(domain));
 
     expect(result.current.loading).toBe(true);
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await flush();
+    expect(result.current.loading).toBe(false);
     expect(result.current.mxRecords).toEqual(["mx1.example.net.", "mx2.example.net."]);
     expect(result.current.error).toBe("");
   });
@@ -66,7 +84,8 @@ describe("useMXRecords", () => {
     fetchMock.mockResolvedValue(dnsResponse({ Status: 0 }));
     const domain = uniqueDomain();
     const { result } = renderHook(() => useMXRecords(domain));
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await flush();
+    expect(result.current.loading).toBe(false);
     expect(result.current.error).toBe("No mailserver records found for this domain");
     expect(result.current.mxRecords).toEqual([]);
   });
@@ -75,7 +94,8 @@ describe("useMXRecords", () => {
     fetchMock.mockResolvedValue(new Response("", { status: 500 }));
     const domain = uniqueDomain();
     const { result } = renderHook(() => useMXRecords(domain));
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await flush();
+    expect(result.current.loading).toBe(false);
     expect(result.current.error).toBe("Failed to fetch mailserver records");
   });
 
@@ -83,15 +103,39 @@ describe("useMXRecords", () => {
     fetchMock.mockResolvedValue(dnsResponse({ Status: 3 }));
     const domain = uniqueDomain();
     const { result } = renderHook(() => useMXRecords(domain));
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await flush();
+    expect(result.current.loading).toBe(false);
     expect(result.current.error).toBe("DNS query failed");
+  });
+
+  it("gives up on a lookup that takes longer than 10 seconds", async () => {
+    fetchMock.mockImplementation(
+      (_url: string, init: RequestInit) =>
+        new Promise<Response>((_, reject) => {
+          init.signal?.addEventListener("abort", () => reject(init.signal?.reason));
+        }),
+    );
+    const domain = uniqueDomain();
+    const { result } = renderHook(() => useMXRecords(domain));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(9_999);
+    });
+    expect(result.current.loading).toBe(true);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
+    expect(result.current.loading).toBe(false);
+    expect(result.current.error).toBe("signal timed out");
   });
 
   it("uses a generic message for non-Error rejections", async () => {
     fetchMock.mockRejectedValue("boom");
     const domain = uniqueDomain();
     const { result } = renderHook(() => useMXRecords(domain));
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await flush();
+    expect(result.current.loading).toBe(false);
     expect(result.current.error).toBe("An error occurred");
   });
 
@@ -100,7 +144,8 @@ describe("useMXRecords", () => {
     fetchMock.mockResolvedValue(dnsResponse({ Status: 0, Answer: [mxAnswer("10 mx.a.")] }));
 
     const first = renderHook(() => useMXRecords(domain));
-    await waitFor(() => expect(first.result.current.mxRecords).toEqual(["mx.a."]));
+    await flush();
+    expect(first.result.current.mxRecords).toEqual(["mx.a."]);
     first.unmount();
 
     const second = renderHook(() => useMXRecords(domain));
@@ -113,7 +158,8 @@ describe("useMXRecords", () => {
     fetchMock.mockResolvedValue(dnsResponse({ Status: 0 }));
 
     const first = renderHook(() => useMXRecords(domain));
-    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    await flush();
+    expect(first.result.current.loading).toBe(false);
     first.unmount();
 
     const second = renderHook(() => useMXRecords(domain));
@@ -126,12 +172,14 @@ describe("useMXRecords", () => {
     fetchMock.mockRejectedValueOnce(new Error("offline"));
 
     const first = renderHook(() => useMXRecords(domain));
-    await waitFor(() => expect(first.result.current.error).toBe("offline"));
+    await flush();
+    expect(first.result.current.error).toBe("offline");
     first.unmount();
 
     fetchMock.mockResolvedValue(dnsResponse({ Status: 0, Answer: [mxAnswer("10 mx.b.")] }));
     const second = renderHook(() => useMXRecords(domain));
-    await waitFor(() => expect(second.result.current.mxRecords).toEqual(["mx.b."]));
+    await flush();
+    expect(second.result.current.mxRecords).toEqual(["mx.b."]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
@@ -140,7 +188,8 @@ describe("useMXRecords", () => {
     const { result, rerender } = renderHook(({ domain }) => useMXRecords(domain), {
       initialProps: { domain: uniqueDomain() },
     });
-    await waitFor(() => expect(result.current.mxRecords).toEqual(["mx.c."]));
+    await flush();
+    expect(result.current.mxRecords).toEqual(["mx.c."]);
 
     rerender({ domain: "" });
     expect(result.current).toEqual({ mxRecords: [], loading: false, error: "" });
@@ -162,15 +211,17 @@ describe("useMXRecords", () => {
     const { result, rerender } = renderHook(({ domain }) => useMXRecords(domain), {
       initialProps: { domain: uniqueDomain() },
     });
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
 
     rerender({ domain: uniqueDomain() });
     expect(staleSignal?.aborted).toBe(true);
-    await waitFor(() => expect(result.current.mxRecords).toEqual(["fresh.example."]));
+    await flush();
+    expect(result.current.mxRecords).toEqual(["fresh.example."]);
 
     // The stale response arriving late must not overwrite the fresh result.
     resolveStale(dnsResponse({ Status: 0, Answer: [mxAnswer("10 stale.example.")] }));
-    await new Promise((r) => setTimeout(r, 0));
+    await flush();
     expect(result.current.mxRecords).toEqual(["fresh.example."]);
   });
 
@@ -187,12 +238,14 @@ describe("useMXRecords", () => {
     const { result, rerender } = renderHook(({ domain }) => useMXRecords(domain), {
       initialProps: { domain: uniqueDomain() },
     });
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
     rerender({ domain: uniqueDomain() });
-    await waitFor(() => expect(result.current.mxRecords).toEqual(["ok."]));
+    await flush();
+    expect(result.current.mxRecords).toEqual(["ok."]);
 
     rejectStale(new Error("stale failure"));
-    await new Promise((r) => setTimeout(r, 0));
+    await flush();
     expect(result.current.error).toBe("");
   });
 
@@ -209,12 +262,14 @@ describe("useMXRecords", () => {
     const { result, rerender } = renderHook(({ domain }) => useMXRecords(domain), {
       initialProps: { domain: uniqueDomain() },
     });
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
     rerender({ domain: uniqueDomain() });
-    await waitFor(() => expect(result.current.mxRecords).toEqual(["ok."]));
+    await flush();
+    expect(result.current.mxRecords).toEqual(["ok."]);
 
     resolveStale(dnsResponse({ Status: 0 }));
-    await new Promise((r) => setTimeout(r, 0));
+    await flush();
     expect(result.current.error).toBe("");
     expect(result.current.mxRecords).toEqual(["ok."]);
   });

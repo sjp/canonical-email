@@ -33,6 +33,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+// Settles the pending DNS lookup and the resulting renders.
+const flush = () =>
+  act(async () => {
+    await vi.advanceTimersByTimeAsync(0);
+  });
+
 // Types an address and lets the debounce fire.
 const typeEmail = async (value: string) => {
   fireEvent.input(screen.getByLabelText("Email Address"), { target: { value } });
@@ -66,7 +72,8 @@ describe("App", () => {
     render(<App />);
     await typeEmail("  John.Doe+news@gmail.com  ");
 
-    await vi.waitFor(() => expect(screen.getByText("johndoe@gmail.com")).toBeTruthy());
+    await flush();
+    expect(screen.getByText("johndoe@gmail.com")).toBeTruthy();
     expect(fetchMock.mock.calls[0][0]).toContain("name=gmail.com");
     expect(screen.getByText(/normalized form of your email address/)).toBeTruthy();
   });
@@ -76,7 +83,8 @@ describe("App", () => {
     render(<App />);
     await typeEmail("jane@icloud.com");
 
-    await vi.waitFor(() => expect(screen.getByText("jane@icloud.com")).toBeTruthy());
+    await flush();
+    expect(screen.getByText("jane@icloud.com")).toBeTruthy();
     expect(screen.getByText("Your email is already in canonical form.")).toBeTruthy();
   });
 
@@ -94,9 +102,8 @@ describe("App", () => {
     render(<App />);
     await typeEmail("someone@no-mx.example");
 
-    await vi.waitFor(() =>
-      expect(screen.getByText("No mailserver records found for this domain")).toBeTruthy(),
-    );
+    await flush();
+    expect(screen.getByText("No mailserver records found for this domain")).toBeTruthy();
     expect(screen.getByLabelText("Email Address").getAttribute("aria-invalid")).toBe("true");
   });
 

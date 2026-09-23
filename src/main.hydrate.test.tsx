@@ -16,8 +16,7 @@ describe("client entry", () => {
 
     await import("./main");
 
-    await vi.waitFor(() =>
-      expect(document.getElementById("app")?.textContent).toContain("Find your canonical email"),
-    );
+    // Hydration renders synchronously, so no waiting is needed.
+    expect(document.getElementById("app")?.textContent).toContain("Find your canonical email");
   });
 });
