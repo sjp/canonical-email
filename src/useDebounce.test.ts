@@ -55,12 +55,12 @@ describe("useDebounce", () => {
     expect(result.current).toBe("c");
   });
 
-  it("clears the pending timer on unmount", () => {
+  it("clears the pending timer on unmount", async () => {
     const { rerender, unmount } = renderHook(({ value }) => useDebounce(value, 300), {
       initialProps: { value: "a" },
     });
     rerender({ value: "b" });
-    unmount();
+    await act(() => unmount());
     expect(vi.getTimerCount()).toBe(0);
   });
 });
